@@ -118,6 +118,9 @@ public class MainWindow extends JFrame {
         productosTable.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (! SwingUtilities.isLeftMouseButton(e))
+                    return;
+
                 int columnIndex = productosTable.getTableHeader().columnAtPoint(e.getPoint());
                 ((ProductoTableModel) productosTable.getModel()).sortByColumn(columnIndex);
             }
@@ -280,23 +283,24 @@ public class MainWindow extends JFrame {
         productosTable.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e)) {
-                    int index = productosTable.columnAtPoint(e.getPoint());
-                    if (index < ProductoTableModel.DYNAMIC_COLUMNS_STARTING_INDEX)
-                        // Should not delete base columns
-                        return;
+                if (! SwingUtilities.isRightMouseButton(e))
+                    return;
 
-                    JPopupMenu menu = new JPopupMenu();
-                    JMenuItem item = new JMenuItem("Eliminar columna");
-                    item.addActionListener(new AbstractAction() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            ((ProductoTableModel) productosTable.getModel()).removeColumn(index);
-                        }
-                    });
-                    menu.add(item);
-                    menu.show(e.getComponent(), e.getX(), e.getY());
-                }
+                int index = productosTable.columnAtPoint(e.getPoint());
+                if (index < ProductoTableModel.DYNAMIC_COLUMNS_STARTING_INDEX)
+                    // Should not delete base columns
+                    return;
+
+                JPopupMenu menu = new JPopupMenu();
+                JMenuItem item = new JMenuItem("Eliminar columna");
+                item.addActionListener(new AbstractAction() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        ((ProductoTableModel) productosTable.getModel()).removeColumn(index);
+                    }
+                });
+                menu.add(item);
+                menu.show(e.getComponent(), e.getX(), e.getY());
             }
         });
     }

@@ -3,11 +3,13 @@ package gui;
 import entity.*;
 import entity.BaseProductoColumn;
 import entity.ProductoColumn;
+import org.hibernate.query.derived.AnonymousTupleSqmPathSource;
 import utils.ExchangeRates;
 
 import javax.swing.table.AbstractTableModel;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class ProductoTableModel extends AbstractTableModel {
@@ -20,6 +22,8 @@ public class ProductoTableModel extends AbstractTableModel {
     public static final int COL_STOCK = 5;
 
     public static final int DYNAMIC_COLUMNS_STARTING_INDEX = 9;
+
+    private boolean ascendingOrder = true;
 
     private List<Producto> productos;
     private final List<ProductoColumn> columns;
@@ -73,15 +77,19 @@ public class ProductoTableModel extends AbstractTableModel {
     }
 
     public void sortByColumn(int columnIndex) {
-        /*Comparator<Producto> comparator = Comparator.comparing(
-                (Producto p) -> (Comparable<?>) columns.get(columnIndex).getValue(p, this),
+        @SuppressWarnings("unchecked")
+        Comparator<Producto> comparator = Comparator.comparing(
+                (Producto p) -> (Comparable<Object>) columns.get(columnIndex).getValue(p, this),
                 Comparator.nullsFirst(Comparator.naturalOrder())
         );
 
         if (comparator != null) {
+            if (ascendingOrder)
+                comparator = comparator.reversed();
             productos.sort(comparator);
+            ascendingOrder = ! ascendingOrder;
             fireTableDataChanged();
-        }*/
+        }
     }
 
     @Override
@@ -108,9 +116,18 @@ public class ProductoTableModel extends AbstractTableModel {
             return; // Base columns should not be removed
 
         // Remove column and those other columns that depend on it
+
     }
 
     public Producto getDummy() {
         return dummy;
+    }
+
+    public ProductoColumn getColumnById(int id) {
+        for (ProductoColumn c : columns) {
+            if (c.getId() == id)
+                return c;
+        }
+        return null;
     }
 }

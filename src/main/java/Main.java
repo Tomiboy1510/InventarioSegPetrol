@@ -16,9 +16,8 @@ public class Main {
         TODO:
             - Permitir añadir columnas dinámicas (identificadas por un ID)
             - Permitir eliminar columnas dinámicas y todas sus dependencias
-            - Permitir usar valores literales en las columnas
             - Persistir columnas
-            - Cambiar formularios (al tener campos inválidos el botón de guardar no aparece enabled)
+            - Lógica para parsear expresiones
      */
 
     public static void main(String[] args) {

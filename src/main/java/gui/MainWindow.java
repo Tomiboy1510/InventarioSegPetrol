@@ -282,7 +282,8 @@ public class MainWindow extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
                     int index = productosTable.columnAtPoint(e.getPoint());
-                    if (index <= ProductoTableModel.COL_PRICE_PER_KG_ARS)
+                    if (index < ProductoTableModel.DYNAMIC_COLUMNS_STARTING_INDEX)
+                        // Should not delete base columns
                         return;
 
                     JPopupMenu menu = new JPopupMenu();

@@ -1,11 +1,13 @@
 package gui;
 
-import entity.DynamicColumn;
-import entity.Producto;
+import entity.*;
+import entity.BaseProductoColumn;
+import entity.ProductoColumn;
 import utils.ExchangeRates;
 
 import javax.swing.table.AbstractTableModel;
-import java.util.Comparator;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProductoTableModel extends AbstractTableModel {
@@ -16,28 +18,43 @@ public class ProductoTableModel extends AbstractTableModel {
     public static final int COL_UNIT_PRICE = 3;
     public static final int COL_UNIT_WEIGHT = 4;
     public static final int COL_STOCK = 5;
-    public static final int COL_UNIT_PRICE_ARS = 6;
-    public static final int COL_PRICE_PER_KG = 7;
-    public static final int COL_PRICE_PER_KG_ARS = 8;
+
+    public static final int DYNAMIC_COLUMNS_STARTING_INDEX = 9;
 
     private List<Producto> productos;
-    private final List<DynamicColumn> dynamicColumns;
+    private final List<ProductoColumn> columns;
 
-    private final String[] baseColumnNames = {
-            "ID",
-            "Nombre",
-            "Descripción",
-            "Precio unitario (USD)",
-            "Peso unitario (KG)",
-            "Stock",
-            "Precio unitario (ARS)",
-            "Precio por kilo (USD)",
-            "Precio por kilo (ARS)"
-    };
+    // Dummy Producto for determining data types of columns
+    private final Producto dummy = new Producto(-1, "", "", BigDecimal.ZERO, BigDecimal.ZERO, 0);
 
-    public ProductoTableModel(List<Producto> productos, List<DynamicColumn> dynamicColumns) {
+    public ProductoTableModel(List<Producto> productos, List<DynamicProductoColumn> dynamicColumns) {
         this.productos = productos;
-        this.dynamicColumns = dynamicColumns;
+        this.columns = new ArrayList<>();
+
+        // I'm using negative IDs to ensure that they are distinct from dynamic columns' IDs which start from 1
+        // Atomic columns
+        columns.add(new BaseProductoColumn(-1, "ID", Producto::getId));
+        columns.add(new BaseProductoColumn(-2, "Nombre", (Producto::getNombre)));
+        columns.add(new BaseProductoColumn(-3, "Descripción", (Producto::getDescripcion)));
+        columns.add(new BaseProductoColumn(-4, "Precio unitario (USD)", (Producto::getPrecioUnit)));
+        columns.add(new BaseProductoColumn(-5, "Peso unitario (KG)", (Producto::getPesoUnit)));
+        columns.add(new BaseProductoColumn(-6, "Stock", Producto::getStock));
+
+        // Generated columns
+        columns.add(new BaseProductoColumn(-7, "Precio unitario (ARS)",
+                p -> p.getPrecioUnit().multiply(ExchangeRates.getDolar())
+        ));
+        columns.add(new BaseProductoColumn(-8, "Precio por kilo (USD)",
+                p -> p.getPesoUnit() == null ? null :
+                        p.getPesoUnit().multiply(p.getPrecioUnit())
+        ));
+        columns.add(new BaseProductoColumn(-9, "Precio por kilo (ARS)",
+                p -> p.getPesoUnit() == null ? null :
+                        p.getPesoUnit().multiply(p.getPrecioUnit()).multiply(ExchangeRates.getDolar())
+        ));
+
+        // Dynamic columns
+        columns.addAll(dynamicColumns);
     }
 
     @Override
@@ -47,58 +64,29 @@ public class ProductoTableModel extends AbstractTableModel {
 
     @Override
     public int getColumnCount() {
-        return baseColumnNames.length + dynamicColumns.size();
+        return columns.size();
     }
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
-        Producto producto = productos.get(rowIndex);
-        if (columnIndex < baseColumnNames.length) {
-            return switch (columnIndex) {
-                case COL_ID -> producto.getId();
-                case COL_NAME -> producto.getNombre();
-                case COL_DESC -> producto.getDescripcion();
-                case COL_UNIT_PRICE -> producto.getPrecioUnit();
-                case COL_UNIT_WEIGHT -> producto.getPesoUnit();
-                case COL_STOCK -> producto.getStock();
-                // Generated columns
-                case COL_UNIT_PRICE_ARS -> producto.getPrecioUnit()
-                        .multiply(ExchangeRates.getDolar());
-                case COL_PRICE_PER_KG -> producto.getPesoUnit() == null ? null :
-                        producto.getPesoUnit()
-                                .multiply(producto.getPrecioUnit());
-                case COL_PRICE_PER_KG_ARS -> producto.getPesoUnit() == null ? null :
-                        producto.getPesoUnit()
-                                .multiply(producto.getPrecioUnit())
-                                .multiply(ExchangeRates.getDolar());
-                default -> null;
-            };
-        } else {
-            return dynamicColumns.get(columnIndex - baseColumnNames.length).getExpression();
-        }
+        return columns.get(columnIndex).getValue(productos.get(rowIndex), this);
     }
 
     public void sortByColumn(int columnIndex) {
-        Comparator<Producto> comparator = switch (columnIndex) {
-            case COL_ID -> Comparator.comparingInt(Producto::getId);
-            case COL_NAME -> Comparator.comparing(Producto::getNombre);
-            case COL_UNIT_PRICE -> Comparator.comparing(Producto::getPrecioUnit);
-            default -> null;
-        };
+        /*Comparator<Producto> comparator = Comparator.comparing(
+                (Producto p) -> (Comparable<?>) columns.get(columnIndex).getValue(p, this),
+                Comparator.nullsFirst(Comparator.naturalOrder())
+        );
 
         if (comparator != null) {
             productos.sort(comparator);
             fireTableDataChanged();
-        }
+        }*/
     }
 
     @Override
     public String getColumnName(int columnIndex) {
-        if (columnIndex < baseColumnNames.length) {
-            return baseColumnNames[columnIndex];
-        } else {
-            return dynamicColumns.get(columnIndex - baseColumnNames.length).getName();
-        }
+        return columns.get(columnIndex).getName();
     }
 
     public void setProductos(List<Producto> productos) {
@@ -106,19 +94,23 @@ public class ProductoTableModel extends AbstractTableModel {
         fireTableDataChanged();
     }
 
-    public void addColumn(DynamicColumn column) {
-        dynamicColumns.add(column);
+    public List<Producto> getProductos() {
+        return productos;
+    }
+
+    public void addColumn(DynamicProductoColumn column) {
+        columns.add(column);
         fireTableChanged(null);
     }
 
     public void removeColumn(int columnIndex) {
-        if (columnIndex < baseColumnNames.length)
-            return; // Should not happen
-        dynamicColumns.remove(columnIndex - baseColumnNames.length);
-        fireTableChanged(null);
+        if (columns.get(columnIndex) instanceof BaseProductoColumn)
+            return; // Base columns should not be removed
+
+        // Remove column and those other columns that depend on it
     }
 
-    public List<DynamicColumn> getDynamicColumns() {
-        return dynamicColumns;
+    public Producto getDummy() {
+        return dummy;
     }
 }

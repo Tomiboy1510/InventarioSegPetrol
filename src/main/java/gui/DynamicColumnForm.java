@@ -1,6 +1,6 @@
 package gui;
 
-import entity.DynamicColumn;
+import entity.DynamicProductoColumn;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -8,6 +8,9 @@ import java.awt.*;
 import java.awt.event.*;
 
 public class DynamicColumnForm extends JFrame {
+
+    private final JTextField nameField;
+    private final JTextField expressionField;
 
     public DynamicColumnForm(ProductoTableModel tableModel) {
         setTitle("Añadir columna");
@@ -22,13 +25,13 @@ public class DynamicColumnForm extends JFrame {
         JLabel nameLabel = new JLabel("Nombre");
         nameLabel.setBorder(new EmptyBorder(5,5,5,5));
         nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField nameField = new JTextField(20);
+        nameField = new JTextField(20);
         nameField.setBorder(new EmptyBorder(5,5,5,5));
 
         JLabel expressionLabel = new JLabel("Expresión");
         expressionLabel.setBorder(new EmptyBorder(5,5,5,5));
         expressionLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-        JTextField expressionField = new JTextField(20);
+        expressionField = new JTextField(20);
         expressionField.setBorder(new EmptyBorder(5,5,5,5));
 
         JButton saveButton = new JButton("Añadir columna");
@@ -59,10 +62,23 @@ public class DynamicColumnForm extends JFrame {
         saveButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                DynamicColumn col = new DynamicColumn(nameField.getText(), expressionField.getText());
+                DynamicProductoColumn col = new DynamicProductoColumn(nameField.getText(), expressionField.getText());
                 tableModel.addColumn(col);
                 dispose();
             }
         });
+    }
+
+    private boolean validFields() {
+        if (nameField.getText().isBlank()) {
+            JOptionPane.showMessageDialog(
+                    null,
+                    "Nombre inválido",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+            );
+            return false;
+        }
+        return true;
     }
 }

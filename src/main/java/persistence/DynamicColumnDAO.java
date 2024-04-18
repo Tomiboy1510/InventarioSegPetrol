@@ -1,6 +1,6 @@
 package persistence;
 
-import entity.DynamicColumn;
+import entity.DynamicProductoColumn;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
@@ -15,9 +15,9 @@ public class DynamicColumnDAO {
         this.sessionFactory = sessionFactory;
     }
 
-    public List<DynamicColumn> getAll() {
+    public List<DynamicProductoColumn> getAll() {
         try (Session session = sessionFactory.openSession()) {
-            return session.createQuery("FROM DynamicColumn", DynamicColumn.class).list();
+            return session.createQuery("FROM DynamicProductoColumn", DynamicProductoColumn.class).list();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -27,14 +27,14 @@ public class DynamicColumnDAO {
     public void delete(int id) {
         try (Session s = sessionFactory.openSession()) {
             Transaction t = s.beginTransaction();
-            s.remove(s.byId(DynamicColumn.class).load(id));
+            s.remove(s.byId(DynamicProductoColumn.class).load(id));
             t.commit();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void save(DynamicColumn column) {
+    public void save(DynamicProductoColumn column) {
         try (Session s = sessionFactory.openSession()) {
             Transaction t = s.beginTransaction();
             s.persist(column);

@@ -17,7 +17,6 @@ public class Main {
             - Permitir añadir columnas dinámicas (identificadas por un ID)
             - Permitir eliminar columnas dinámicas y todas sus dependencias
             - Persistir columnas
-            - Lógica para parsear expresiones
      */
 
     public static void main(String[] args) {

@@ -3,7 +3,6 @@ package gui;
 import entity.*;
 import entity.BaseProductoColumn;
 import entity.ProductoColumn;
-import org.hibernate.query.derived.AnonymousTupleSqmPathSource;
 import utils.ExchangeRates;
 
 import javax.swing.table.AbstractTableModel;
@@ -121,6 +120,10 @@ public class ProductoTableModel extends AbstractTableModel {
 
     public Producto getDummy() {
         return dummy;
+    }
+
+    public List<ProductoColumn> getColumns() {
+        return columns;
     }
 
     public ProductoColumn getColumnById(int id) {

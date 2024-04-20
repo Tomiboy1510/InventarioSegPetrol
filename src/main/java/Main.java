@@ -13,14 +13,6 @@ import java.math.BigDecimal;
 
 public class Main {
 
-    /*
-        TODO:
-            - Terminar GUI para añadir nuevas columnas
-            - Persistir columnas
-            - Quitar las columnas base generadas que dependen del tipo de cambio (pueden ser columnas dinámicas)
-            - Añadir tooltip de expresión para los headers de columnas dinámicas
-     */
-
     public static void main(String[] args) {
 
         // Set look and feel

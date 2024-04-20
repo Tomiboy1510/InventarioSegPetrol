@@ -14,6 +14,7 @@ import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
@@ -131,7 +132,7 @@ public class MainWindow extends JFrame {
                 if (! SwingUtilities.isLeftMouseButton(e))
                     return;
 
-                int columnIndex = productosTable.getTableHeader().columnAtPoint(e.getPoint());
+                int columnIndex = productosTable.convertColumnIndexToModel(productosTable.columnAtPoint(e.getPoint()));
                 ((ProductoTableModel) productosTable.getModel()).sortByColumn(columnIndex);
             }
         });
@@ -306,20 +307,30 @@ public class MainWindow extends JFrame {
                 if (! SwingUtilities.isRightMouseButton(e))
                     return;
 
-                int index = productosTable.columnAtPoint(e.getPoint());
+                int index = productosTable.convertColumnIndexToModel(productosTable.columnAtPoint(e.getPoint()));
                 if (tableModel.isBaseColumn(index))
                     // Should not delete base columns
                     return;
 
                 JPopupMenu menu = new JPopupMenu();
                 JMenuItem item = new JMenuItem("Eliminar columna");
+
+                List<DynamicProductoColumn> dynamicColumns = new ArrayList<>(tableModel.getColumns().stream()
+                        .filter(col -> col instanceof DynamicProductoColumn)
+                        .map(col -> (DynamicProductoColumn) col)
+                        .toList());
+
                 item.addActionListener(new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        tableModel.removeColumn(index);
+                        dynamicColumnDAO.deleteWithDependencies(
+                                tableModel.getColumns().get(index).getId(),
+                                dynamicColumns
+                        );
                         refresh();
                     }
                 });
+
                 menu.add(item);
                 menu.show(e.getComponent(), e.getX(), e.getY());
             }
@@ -331,18 +342,18 @@ public class MainWindow extends JFrame {
 
         tableModel.setProductos(productoDAO.getAll());
         tableModel.setDynamicColumns(dynamicColumnDAO.getAll());
-        tableModel.sort();
     }
 
+    // CUSTOM TABLE HEADER FOR TOOLTIPS
     class CustomTableHeader extends JTableHeader {
         public CustomTableHeader(TableColumnModel tableColumnModel) {
             super(tableColumnModel);
         }
 
         @Override
-        public String getToolTipText(MouseEvent event) {
+        public String getToolTipText(MouseEvent e) {
             ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
-            int index = columnAtPoint(event.getPoint());
+            int index = productosTable.convertColumnIndexToModel(productosTable.columnAtPoint(e.getPoint()));
 
             ProductoColumn column = tableModel.getColumns().get(index);
             String expr = "";
@@ -355,7 +366,7 @@ public class MainWindow extends JFrame {
                             .replace("DOLAR", "Tipo de cambio");
                 }
             }
-            return "ID = " + column.getId() + expr;
+            return "COL" + column.getId() + expr;
         }
     }
 }

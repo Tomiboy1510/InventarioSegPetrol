@@ -23,7 +23,7 @@ public class DynamicProductoColumn extends ProductoColumn {
         if (expression.isEmpty())
             this.expression = expression;
         else
-            this.expression = expression.substring(0, Math.min(name.length(), 199));
+            this.expression = expression.substring(0, Math.min(expression.length(), 199));
     }
 
     public String getExpression() {
@@ -38,7 +38,7 @@ public class DynamicProductoColumn extends ProductoColumn {
             int colId = tableModel.getColumns().get(i).getId();
 
             if (exp.contains("COL" + colId)) {
-                if (colId == this.getId())
+                if (colId >= this.getId())
                     return "Expresión inválida";
 
                 Object value = tableModel.getColumns().get(i).getValue(p, tableModel);

@@ -70,17 +70,4 @@ public class DynamicColumnForm extends JFrame {
             }
         });
     }
-
-    private boolean validFields() {
-        if (nameField.getText().isBlank()) {
-            JOptionPane.showMessageDialog(
-                    null,
-                    "Nombre inválido",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE
-            );
-            return false;
-        }
-        return true;
-    }
 }

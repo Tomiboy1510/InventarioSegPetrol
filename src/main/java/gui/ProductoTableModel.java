@@ -14,9 +14,8 @@ import java.util.stream.IntStream;
 
 public class ProductoTableModel extends AbstractTableModel {
 
-    private boolean ascendingOrder = true;
-    private int sortingColumnIndex;
-    private Comparator<Producto> comparator;
+    private boolean descendingOrder = true;
+    private int sortingColumnId;
 
     public static final String COL_ID = "ID";
     public static final String COL_NAME = "Nombre";
@@ -77,9 +76,18 @@ public class ProductoTableModel extends AbstractTableModel {
         return columns.get(columnIndex).getValue(productos.get(rowIndex), this);
     }
 
+    @Override
+    public String getColumnName(int columnIndex) {
+        return columns.get(columnIndex).getName();
+    }
+
+    public List<ProductoColumn> getColumns() {
+        return columns;
+    }
+
     public void sortByColumn(int columnIndex) {
         //noinspection unchecked
-        comparator = Comparator.comparing(
+        Comparator<Producto> comparator = Comparator.comparing(
                 (Producto p) -> (Comparable<Object>) columns.get(columnIndex).getValue(p, this),
                 Comparator.nullsFirst(Comparator.naturalOrder())
         );
@@ -87,78 +95,16 @@ public class ProductoTableModel extends AbstractTableModel {
         if (comparator == null)
             return;
 
-        if (ascendingOrder)
+        if (descendingOrder)
             comparator = comparator.reversed();
 
-        sortingColumnIndex = columnIndex;
+        sortingColumnId = columns.get(columnIndex).getId();
         productos.sort(comparator);
-        ascendingOrder = ! ascendingOrder;
-
-        fireTableDataChanged();
-    }
-
-    @Override
-    public String getColumnName(int columnIndex) {
-        return columns.get(columnIndex).getName();
-    }
-
-    public void setProductos(List<Producto> productos) {
-        this.productos = productos;
-        fireTableDataChanged();
+        descendingOrder = !descendingOrder;
     }
 
     public boolean isBaseColumn(int columnIndex) {
         return (columns.get(columnIndex) instanceof BaseProductoColumn);
-    }
-
-    public void removeColumn(int columnIndex) {
-        if (isBaseColumn(columnIndex))
-            return; // Base columns should not be removed
-
-        removeColumnById(columns.get(columnIndex).getId());
-
-        if (columnIndex == sortingColumnIndex) {
-            @SuppressWarnings("OptionalGetWithoutIsPresent")
-            int idColumnIndex = IntStream.range(0, columns.size())
-                    .filter(i -> columns.get(i).getId() == -1)
-                    .findFirst()
-                    .getAsInt();
-
-            sortByColumn(idColumnIndex);
-        }
-    }
-
-    private void removeColumnById(int id) {
-        // TODO REESCRIBIR COMPLETAMENTE PARA QUE ELIMINE LAS COLUMNAS PERSISTIDAS
-        // QUIZA NO DEBERÍA ESTAR DENTRO DE ESTA CLASE
-        /*
-        // Get dependencies
-        List<Integer> idsForRemoval = new ArrayList<>();
-        columns.stream()
-                .filter(col -> col instanceof DynamicProductoColumn)
-                .filter(col -> ((DynamicProductoColumn) col).getExpression().contains("COL" + id))
-                .filter(col -> col.getId() != id)
-                .forEach(col -> idsForRemoval.add(col.getId()));
-
-        // Remove dependencies recursively
-        idsForRemoval.forEach(this::removeColumnById);
-
-        // Remove column
-        columns.removeIf((pc -> pc.getId() == id));
-
-        fireTableChanged(null);
-        */
-    }
-
-    public List<ProductoColumn> getColumns() {
-        return columns;
-    }
-
-    public ProductoColumn getColumnById(int id) {
-        return columns.stream()
-                .filter(c -> c.getId() == id)
-                .findFirst()
-                .orElse(null);
     }
 
     public OptionalInt indexOf(String name) {
@@ -167,17 +113,34 @@ public class ProductoTableModel extends AbstractTableModel {
                 .findFirst();
     }
 
-    public void sort() {
-        if (comparator == null)
-            return;
-
-        productos.sort(comparator);
+    public void setProductos(List<Producto> productos) {
+        this.productos = productos;
+        fireTableDataChanged();
     }
 
     public void setDynamicColumns(List<DynamicProductoColumn> dynamicColumns) {
         columns = new ArrayList<>();
         columns.addAll(baseColumns);
         columns.addAll(dynamicColumns);
-        fireTableChanged(null);
+
+        // If previous sorting column is not present anymore, set sorting by ID
+        dynamicColumns.stream()
+                .filter(col -> col.getId() == sortingColumnId)
+                .findFirst()
+                .ifPresentOrElse(
+                        (col -> { /* Do nothing */ }),
+                        () -> sortingColumnId = -1
+                );
+
+        // Sort
+        IntStream.range(0, columns.size())
+                .filter(i -> columns.get(i).getId() == sortingColumnId)
+                .findFirst()
+                .ifPresent(i -> {
+                    descendingOrder = !descendingOrder;
+                    sortByColumn(i);
+                });
+
+        fireTableStructureChanged();
     }
 }

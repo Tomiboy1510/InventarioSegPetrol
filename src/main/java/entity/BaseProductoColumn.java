@@ -13,11 +13,6 @@ public class BaseProductoColumn extends ProductoColumn {
         this.extractor = extractor;
     }
 
-    public BaseProductoColumn(String name, Function<Producto, Object> extractor) {
-        super(name);
-        this.extractor = extractor;
-    }
-
     @Override
     public Object getValue(Producto p, ProductoTableModel tableModel) {
         return extractor.apply(p);

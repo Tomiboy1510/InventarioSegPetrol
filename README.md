@@ -3,7 +3,6 @@ Sistema de inventario muy simple, nada remarcable
 - Obtiene el tipo de cambio al Dólar Oficial BNA, de no ser posible permite ingresarlo manualmente
 - Añadir, modificar, eliminar productos (lo que cabe esperar)
 - Permite buscar productos por nombre, buscando nombres que contengan la cadena ingresada, no hace falta que coincidan las mayúsculas (Enter para avanzar de un resultado al siguiente)
-- Permite cambiar el ancho y la ubicación de las columnas en la tabla (estirándolas o arrastrándolas con el mouse)
   
 - Permite añadir columnas de manera dinámica, cuyo valor se evalúa en base a una expresión matemática
 - Las expresiones pueden contener operadores matemáticos (+,-,/,*), paréntesis, números literales y referencias a otras columnas, y al tipo de cambio

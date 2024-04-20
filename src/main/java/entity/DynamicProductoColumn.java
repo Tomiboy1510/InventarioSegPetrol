@@ -24,6 +24,8 @@ public class DynamicProductoColumn extends ProductoColumn {
             this.expression = expression;
         else
             this.expression = expression.substring(0, Math.min(expression.length(), 199));
+
+        this.expression = this.expression.replace(',','.');
     }
 
     public String getExpression() {

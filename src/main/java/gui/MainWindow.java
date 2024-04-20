@@ -1,31 +1,39 @@
 package gui;
 
+import entity.DynamicProductoColumn;
+import entity.ProductoColumn;
+import persistence.DynamicColumnDAO;
 import persistence.ProductoDAO;
 import entity.Producto;
 import utils.ExchangeRates;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.JTableHeader;
+import javax.swing.table.TableColumnModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.List;
 
+@SuppressWarnings("OptionalGetWithoutIsPresent")
 public class MainWindow extends JFrame {
 
     private final ProductoDAO productoDAO;
+    private final DynamicColumnDAO dynamicColumnDAO;
     private JTextField exchangeRateField;
     private JTable productosTable;
 
     private ProductoForm form = null;
 
-    public MainWindow(ProductoDAO productoDAO) {
+    public MainWindow(ProductoDAO productoDAO, DynamicColumnDAO dynamicColumnDAO) {
         setTitle("SegPetrol - Inventario");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1024, 768);
         setLocationRelativeTo(null);
 
         this.productoDAO = productoDAO;
+        this.dynamicColumnDAO = dynamicColumnDAO;
 
         initComponents();
 
@@ -75,7 +83,7 @@ public class MainWindow extends JFrame {
         getContentPane().add(topPanel, BorderLayout.NORTH);
 
         // TABLE AND SCROLL PANEL
-        productosTable = new JTable(new ProductoTableModel(productoDAO.getAll(), new ArrayList<>()));
+        productosTable = new JTable(new ProductoTableModel(productoDAO.getAll(), dynamicColumnDAO.getAll()));
 
         productosTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -83,7 +91,7 @@ public class MainWindow extends JFrame {
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         productosTable.setDefaultRenderer(Object.class, centerRenderer);
 
-        productosTable.getTableHeader().setReorderingAllowed(false);
+        productosTable.setTableHeader(new CustomTableHeader(productosTable.getColumnModel()));
 
         JScrollPane scrollPane = new JScrollPane(productosTable);
         getContentPane().add(scrollPane, BorderLayout.CENTER);
@@ -115,6 +123,8 @@ public class MainWindow extends JFrame {
         getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 
         // ADD LISTENERS TO BUTTONS (AND JTEXTFIELD)
+
+        // SORT BY COLUMN
         productosTable.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -133,7 +143,7 @@ public class MainWindow extends JFrame {
                 ExchangeRates.requestDolarOficial();
                 if (ExchangeRates.getDolar() != null) {
                     exchangeRateField.setText(ExchangeRates.getDolar().toString());
-                    productosTable.repaint();
+                    refresh();
                 }
                 else
                     JOptionPane.showMessageDialog(
@@ -173,7 +183,9 @@ public class MainWindow extends JFrame {
         searchByNameField.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int rows = productosTable.getModel().getRowCount();
+                ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
+
+                int rows = tableModel.getRowCount();
                 if (rows == 0)
                     return;
 
@@ -182,7 +194,7 @@ public class MainWindow extends JFrame {
                 int s = productosTable.getSelectedRow();
 
                 for (int i = (s + 1) % rows; ; i = (i + 1) % rows) {
-                    if (productosTable.getModel().getValueAt(i, ProductoTableModel.COL_NAME).toString().toLowerCase().contains(name)) {
+                    if (productosTable.getModel().getValueAt(i, tableModel.indexOf(ProductoTableModel.COL_NAME).getAsInt()).toString().toLowerCase().contains(name)) {
                         productosTable.setRowSelectionInterval(i, i);
                         productosTable.scrollRectToVisible(productosTable.getCellRect(productosTable.getSelectedRow(), 0,true));
                         return;
@@ -198,19 +210,23 @@ public class MainWindow extends JFrame {
         deleteButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
+
                 if (form != null) {
                     form.dispose();
                 }
 
+                // No row selected?
                 if (productosTable.getSelectedRow() == -1)
                     return;
 
-                int id = (int) productosTable.getModel().getValueAt(productosTable.getSelectedRow(), ProductoTableModel.COL_ID);
+                int id = (int) tableModel.getValueAt(productosTable.getSelectedRow(), tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt());
 
                 String[] options = {"Sí", "No"};
                 int choice = JOptionPane.showOptionDialog(
                         null,
-                        "Eliminar " + productosTable.getModel().getValueAt(productosTable.getSelectedRow(), ProductoTableModel.COL_NAME) + " (ID "+ id +")?",
+                        "Eliminar " + tableModel.getValueAt(productosTable.getSelectedRow(),
+                                tableModel.indexOf(ProductoTableModel.COL_NAME).getAsInt()) + " (ID "+ id +")?",
                         "Eliminar",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
@@ -244,6 +260,8 @@ public class MainWindow extends JFrame {
         modifyButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
+
                 if (form != null) {
                     form.dispose();
                 }
@@ -254,16 +272,16 @@ public class MainWindow extends JFrame {
 
                 form = new ProductoForm(
                         MainWindow.this,
-                        "Modificar producto #" + productosTable.getModel().getValueAt(row, ProductoTableModel.COL_ID),
+                        "Modificar producto #" + tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt()),
                         productoDAO
                 );
                 Producto p = new Producto(
-                        (Integer) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_ID),
-                        (String) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_NAME),
-                        (String) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_DESC),
-                        (BigDecimal) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_UNIT_PRICE),
-                        (BigDecimal) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_UNIT_WEIGHT),
-                        (Integer) productosTable.getModel().getValueAt(row, ProductoTableModel.COL_STOCK)
+                        (Integer) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt()),
+                        (String) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_NAME).getAsInt()),
+                        (String) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_DESC).getAsInt()),
+                        (BigDecimal) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_PRICE).getAsInt()),
+                        (BigDecimal) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_WEIGHT).getAsInt()),
+                        (Integer) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_STOCK).getAsInt())
                 );
                 form.setFields(p);
                 form.setVisible(true);
@@ -274,7 +292,7 @@ public class MainWindow extends JFrame {
         addColumnButton.addActionListener(new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                DynamicColumnForm columnForm = new DynamicColumnForm((ProductoTableModel) productosTable.getModel());
+                DynamicColumnForm columnForm = new DynamicColumnForm(MainWindow.this, dynamicColumnDAO);
                 columnForm.setVisible(true);
             }
         });
@@ -283,11 +301,13 @@ public class MainWindow extends JFrame {
         productosTable.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
+
                 if (! SwingUtilities.isRightMouseButton(e))
                     return;
 
                 int index = productosTable.columnAtPoint(e.getPoint());
-                if (index < ProductoTableModel.DYNAMIC_COLUMNS_STARTING_INDEX)
+                if (tableModel.isBaseColumn(index))
                     // Should not delete base columns
                     return;
 
@@ -296,7 +316,8 @@ public class MainWindow extends JFrame {
                 item.addActionListener(new AbstractAction() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        ((ProductoTableModel) productosTable.getModel()).removeColumn(index);
+                        tableModel.removeColumn(index);
+                        refresh();
                     }
                 });
                 menu.add(item);
@@ -306,6 +327,35 @@ public class MainWindow extends JFrame {
     }
 
     public void refresh() {
-        ((ProductoTableModel) productosTable.getModel()).setProductos(productoDAO.getAll());
+        ProductoTableModel tableModel = (ProductoTableModel) productosTable.getModel();
+
+        tableModel.setProductos(productoDAO.getAll());
+        tableModel.setDynamicColumns(dynamicColumnDAO.getAll());
+        tableModel.sort();
+    }
+
+    class CustomTableHeader extends JTableHeader {
+        public CustomTableHeader(TableColumnModel tableColumnModel) {
+            super(tableColumnModel);
+        }
+
+        @Override
+        public String getToolTipText(MouseEvent event) {
+            ProductoTableModel tableModel = ((ProductoTableModel) productosTable.getModel());
+            int index = columnAtPoint(event.getPoint());
+
+            ProductoColumn column = tableModel.getColumns().get(index);
+            String expr = "";
+            if (! tableModel.isBaseColumn(index)) {
+                expr += "\n" + ((DynamicProductoColumn) column).getExpression();
+                List<ProductoColumn> columns = tableModel.getColumns();
+                for (ProductoColumn c : columns) {
+                    expr = expr
+                            .replace("COL" + c.getId(), c.getName())
+                            .replace("DOLAR", "Tipo de cambio");
+                }
+            }
+            return "ID = " + column.getId() + expr;
+        }
     }
 }

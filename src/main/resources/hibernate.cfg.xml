@@ -4,6 +4,7 @@
         "http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
 <hibernate-configuration>
     <session-factory>
+
         <!-- Database connection properties -->
         <property name="hibernate.connection.url">jdbc:mysql://localhost:3306/segpetrol</property>
         <property name="hibernate.connection.username">root</property>
@@ -14,5 +15,7 @@
 
         <!-- Entity mapping configuration -->
         <mapping class="entity.Producto"/>
+        <mapping class="entity.DynamicProductoColumn"/>
+
     </session-factory>
 </hibernate-configuration>

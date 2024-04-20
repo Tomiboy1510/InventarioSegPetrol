@@ -1,4 +1,5 @@
 import com.formdev.flatlaf.FlatDarkLaf;
+import persistence.DynamicColumnDAO;
 import persistence.ProductoDAO;
 import gui.MainWindow;
 import utils.ExchangeRates;
@@ -14,9 +15,10 @@ public class Main {
 
     /*
         TODO:
-            - Permitir añadir columnas dinámicas (identificadas por un ID)
-            - Permitir eliminar columnas dinámicas y todas sus dependencias
+            - Terminar GUI para añadir nuevas columnas
             - Persistir columnas
+            - Quitar las columnas base generadas que dependen del tipo de cambio (pueden ser columnas dinámicas)
+            - Añadir tooltip de expresión para los headers de columnas dinámicas
      */
 
     public static void main(String[] args) {
@@ -41,9 +43,10 @@ public class Main {
 
         SessionFactory sessionFactory = SessionFactoryBuilder.getSessionFactory();
         ProductoDAO productoDAO = new ProductoDAO(sessionFactory);
+        DynamicColumnDAO dynamicColumnDAO = new DynamicColumnDAO(sessionFactory);
 
         SwingUtilities.invokeLater(() -> {
-            MainWindow window = new MainWindow(productoDAO);
+            MainWindow window = new MainWindow(productoDAO, dynamicColumnDAO);
             window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {

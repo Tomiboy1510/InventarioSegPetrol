@@ -1,6 +1,7 @@
 package gui;
 
 import entity.DynamicProductoColumn;
+import persistence.DynamicColumnDAO;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -12,7 +13,7 @@ public class DynamicColumnForm extends JFrame {
     private final JTextField nameField;
     private final JTextField expressionField;
 
-    public DynamicColumnForm(ProductoTableModel tableModel) {
+    public DynamicColumnForm(MainWindow mainWindow, DynamicColumnDAO dynamicColumnDAO) {
         setTitle("Añadir columna");
         setMinimumSize(new Dimension(200, 0));
         setResizable(false);
@@ -63,7 +64,8 @@ public class DynamicColumnForm extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 DynamicProductoColumn col = new DynamicProductoColumn(nameField.getText(), expressionField.getText());
-                tableModel.addColumn(col);
+                dynamicColumnDAO.save(col);
+                mainWindow.refresh();
                 dispose();
             }
         });

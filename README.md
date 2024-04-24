@@ -19,7 +19,7 @@
 
   - Ejemplos de expresiones:
   
-        COL-4 * COL2 + (2/3)
+        COL-4 * DOLAR + (2/3)
         COL34 / 10
         (COL13 + 56) * 0.14
         COL-6 * 23,99

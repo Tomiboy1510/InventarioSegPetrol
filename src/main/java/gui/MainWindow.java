@@ -88,8 +88,6 @@ public class MainWindow extends JFrame {
         // TABLE AND SCROLL PANEL
         productosTable = new JTable(new ProductoTableModel(productoDAO.getAll(), dynamicColumnDAO.getAll()));
 
-        productosTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
         centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         productosTable.setDefaultRenderer(Object.class, centerRenderer);
@@ -107,7 +105,12 @@ public class MainWindow extends JFrame {
 
         JButton addColumnButton = new JButton("Añadir columna");
         addColumnButton.setFocusable(false);
+
+        JButton updatePriceButton = new JButton("Actualizar precio");
+        updatePriceButton.setFocusable(false);
+
         bottomLeftPanel.add(addColumnButton);
+        bottomLeftPanel.add(updatePriceButton);
 
         // Add left aligned button to bottom panel
         bottomPanel.add(bottomLeftPanel, BorderLayout.WEST);
@@ -219,27 +222,38 @@ public class MainWindow extends JFrame {
                     form.dispose();
                 }
 
-                // No row selected?
-                if (productosTable.getSelectedRow() == -1)
+                if (productosTable.getSelectedRowCount() == 0)
                     return;
 
-                int id = (int) tableModel.getValueAt(productosTable.getSelectedRow(), tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt());
+                int choice;
+                String message;
 
-                String[] options = {"Sí", "No"};
-                int choice = JOptionPane.showOptionDialog(
+                if (productosTable.getSelectedRowCount() == 1) {
+                    int id = (int) tableModel.getValueAt(productosTable.getSelectedRow(), tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt());
+                    message = "¿Eliminar " + tableModel.getValueAt(productosTable.getSelectedRow(),
+                            tableModel.indexOf(ProductoTableModel.COL_NAME).getAsInt()) + " (ID " + id + ")?";
+                } else {
+                    message = "¿Eliminar múltiples productos?";
+                }
+
+                choice = JOptionPane.showOptionDialog(
                         null,
-                        "Eliminar " + tableModel.getValueAt(productosTable.getSelectedRow(),
-                                tableModel.indexOf(ProductoTableModel.COL_NAME).getAsInt()) + " (ID "+ id +")?",
+                        message,
                         "Eliminar",
                         JOptionPane.YES_NO_OPTION,
                         JOptionPane.QUESTION_MESSAGE,
                         null,
-                        options,
-                        options[0]
+                        new String[] {"Sí", "No"},
+                        "Sí"
                 );
 
                 if (choice == JOptionPane.YES_OPTION) {
-                    productoDAO.delete(id);
+                    int[] selectedRows = productosTable.getSelectedRows();
+                    for (int row : selectedRows) {
+                        productoDAO.delete(
+                                (Integer) tableModel.getValueAt(row, tableModel.indexOf(ProductoTableModel.COL_ID).getAsInt())
+                        );
+                    }
                     refresh();
                 }
             }
@@ -335,6 +349,20 @@ public class MainWindow extends JFrame {
 
                 menu.add(item);
                 menu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        });
+
+        // UPDATE PRICES OF SELECTED ROWS
+        updatePriceButton.addActionListener(new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int[] selectedRows = productosTable.getSelectedRows();
+
+                if (selectedRows.length == 0)
+                    return;
+
+                UpdatePriceForm form = new UpdatePriceForm(productosTable, MainWindow.this, productoDAO);
+                form.setVisible(true);
             }
         });
     }

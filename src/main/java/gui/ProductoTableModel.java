@@ -6,6 +6,7 @@ import entity.ProductoColumn;
 import utils.ExchangeRates;
 
 import javax.swing.table.AbstractTableModel;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -43,15 +44,15 @@ public class ProductoTableModel extends AbstractTableModel {
 
         // Generated baseColums
         baseColumns.add(new BaseProductoColumn(-7, "Precio unitario (ARS)",
-                p -> p.getPrecioUnit().multiply(ExchangeRates.getDolar())
+                p -> p.getPrecioUnit().multiply(ExchangeRates.getDolar()).setScale(2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-8, "Precio por kilo (USD)",
                 p -> p.getPesoUnit() == null ? null :
-                        p.getPesoUnit().multiply(p.getPrecioUnit())
+                        p.getPesoUnit().multiply(p.getPrecioUnit()).setScale(2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-9, "Precio por kilo (ARS)",
                 p -> p.getPesoUnit() == null ? null :
-                        p.getPesoUnit().multiply(p.getPrecioUnit()).multiply(ExchangeRates.getDolar())
+                        p.getPesoUnit().multiply(p.getPrecioUnit()).multiply(ExchangeRates.getDolar()).setScale(2, RoundingMode.HALF_EVEN)
         ));
 
         columns = new ArrayList<>();

@@ -7,6 +7,7 @@ import org.nfunk.jep.ParseException;
 import utils.ExchangeRates;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Entity
 public class DynamicProductoColumn extends ProductoColumn {
@@ -24,8 +25,6 @@ public class DynamicProductoColumn extends ProductoColumn {
             this.expression = expression;
         else
             this.expression = expression.substring(0, Math.min(expression.length(), 199));
-
-        this.expression = this.expression.replace(',','.');
     }
 
     public String getExpression() {
@@ -55,7 +54,7 @@ public class DynamicProductoColumn extends ProductoColumn {
 
         // Parse constant expression
         try {
-            return BigDecimal.valueOf(evaluate(exp));
+            return BigDecimal.valueOf(evaluate(exp)).setScale(2, RoundingMode.HALF_EVEN);
         } catch (ParseException | NumberFormatException e) {
             return "Expresión inválida";
         }

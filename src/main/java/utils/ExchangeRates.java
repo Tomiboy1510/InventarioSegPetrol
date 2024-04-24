@@ -14,7 +14,7 @@ public class ExchangeRates {
     private static BigDecimal dolar;
 
     public static void requestDolarOficial() {
-        String apiUrl = "https://dolarapi.com/v1/dolares/oficial";
+        String apiUrl = "https://dolarapi.com/v1/dolares/mayorista";
         try (HttpClient client = HttpClient
                 .newBuilder()
                 .connectTimeout(Duration.ofSeconds(3))

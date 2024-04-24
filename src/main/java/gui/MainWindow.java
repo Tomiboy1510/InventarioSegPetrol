@@ -30,7 +30,9 @@ public class MainWindow extends JFrame {
     public MainWindow(ProductoDAO productoDAO, DynamicColumnDAO dynamicColumnDAO) {
         setTitle("SegPetrol - Inventario");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1024, 768);
+
+        int width = (int) (Toolkit.getDefaultToolkit().getScreenSize().getWidth() * 0.8);
+        setSize(width, width * 9 / 16);
         setLocationRelativeTo(null);
 
         this.productoDAO = productoDAO;
@@ -71,7 +73,7 @@ public class MainWindow extends JFrame {
 
         JButton obtainExchangeRateButton = new JButton("Sincronizar");
         obtainExchangeRateButton.setFocusable(false);
-        obtainExchangeRateButton.setToolTipText("Dólar Oficial BNA");
+        obtainExchangeRateButton.setToolTipText("Dólar mayorista");
 
         exchangeRateField = new JTextField(ExchangeRates.getDolar().toString());
         topRightPanel.add(exchangeRateField);

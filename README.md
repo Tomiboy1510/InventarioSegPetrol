@@ -1,6 +1,6 @@
-Sistema de inventario muy simple, nada remarcable
+Sistema de inventario muy simple hecho para un taller de metalurgia
 
-- Obtiene el tipo de cambio al Dólar Oficial BNA, de no ser posible permite ingresarlo manualmente
+- Obtiene el tipo de cambio al Dólar Mayorista, de no ser posible permite ingresarlo manualmente
 - Añadir, modificar, eliminar productos (lo que cabe esperar)
 - Permite buscar productos por nombre, buscando nombres que contengan la cadena ingresada, no hace falta que coincidan las mayúsculas (Enter para avanzar de un resultado al siguiente)
   

@@ -15,6 +15,10 @@ public class BaseProductoColumn extends ProductoColumn {
 
     @Override
     public Object getValue(Producto p, ProductoTableModel tableModel) {
-        return extractor.apply(p);
+        try {
+            return extractor.apply(p);
+        } catch (Exception e) {
+            return "Expresión inválida";
+        }
     }
 }

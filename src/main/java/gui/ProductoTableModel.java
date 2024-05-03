@@ -44,15 +44,20 @@ public class ProductoTableModel extends AbstractTableModel {
 
         // Generated baseColums
         baseColumns.add(new BaseProductoColumn(-7, "Precio unitario (ARS)",
-                p -> p.getPrecioUnit().multiply(ExchangeRates.getDolar()).setScale(2, RoundingMode.HALF_EVEN)
+                p -> p.getPrecioUnit()
+                        .multiply(ExchangeRates.getDolar())
+                        .setScale(2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-8, "Precio por kilo (USD)",
-                p -> p.getPesoUnit() == null ? null :
-                        p.getPesoUnit().multiply(p.getPrecioUnit()).setScale(2, RoundingMode.HALF_EVEN)
+                p -> p.getPrecioUnit() == null ? null :
+                        p.getPrecioUnit()
+                                .divide(p.getPesoUnit(), 2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-9, "Precio por kilo (ARS)",
-                p -> p.getPesoUnit() == null ? null :
-                        p.getPesoUnit().multiply(p.getPrecioUnit()).multiply(ExchangeRates.getDolar()).setScale(2, RoundingMode.HALF_EVEN)
+                p -> p.getPrecioUnit() == null ? null :
+                        p.getPrecioUnit()
+                                .divide(p.getPesoUnit(), 2, RoundingMode.HALF_EVEN)
+                                .multiply(ExchangeRates.getDolar())
         ));
 
         columns = new ArrayList<>();

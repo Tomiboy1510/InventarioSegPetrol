@@ -146,7 +146,7 @@ public class ProductoForm extends JFrame {
 
         try {
             BigDecimal price = new BigDecimal(unitPriceField.getText());
-            if (price.signum() == -1)
+            if (price.signum() <= 0)
                 throw new NumberFormatException();
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(
@@ -161,7 +161,7 @@ public class ProductoForm extends JFrame {
         if (! unitWeightField.getText().isBlank()) {
             try {
                 BigDecimal weight = new BigDecimal(unitWeightField.getText());
-                if (weight.signum() == -1)
+                if (weight.signum() <= 0)
                     throw new NumberFormatException();
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(

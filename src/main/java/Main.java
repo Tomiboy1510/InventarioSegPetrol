@@ -34,6 +34,12 @@ public class Main {
         }
 
         SessionFactory sessionFactory = SessionFactoryBuilder.getSessionFactory();
+
+        if (sessionFactory == null) {
+            JOptionPane.showMessageDialog(null, "No se pudo acceder a la instancia de base de datos", "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+
         ProductoDAO productoDAO = new ProductoDAO(sessionFactory);
         DynamicColumnDAO dynamicColumnDAO = new DynamicColumnDAO(sessionFactory);
 
@@ -42,7 +48,7 @@ public class Main {
             window.addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    if (sessionFactory != null && !sessionFactory.isClosed()) {
+                    if (!sessionFactory.isClosed()) {
                         sessionFactory.close();
                     }
                 }

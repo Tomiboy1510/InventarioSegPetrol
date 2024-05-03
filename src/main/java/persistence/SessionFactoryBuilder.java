@@ -10,9 +10,9 @@ public class SessionFactoryBuilder {
         try {
             // Create the SessionFactory from hibernate.cfg.xml
             return new Configuration().configure().buildSessionFactory();
-        } catch (Throwable ex) {
-            System.err.println("Initial SessionFactory creation failed: " + ex);
-            throw new ExceptionInInitializerError(ex);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 

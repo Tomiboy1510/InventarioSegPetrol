@@ -49,12 +49,12 @@ public class ProductoTableModel extends AbstractTableModel {
                         .setScale(2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-8, "Precio por kilo (USD)",
-                p -> p.getPrecioUnit() == null ? null :
+                p -> p.getPesoUnit() == null ? null :
                         p.getPrecioUnit()
                                 .divide(p.getPesoUnit(), 2, RoundingMode.HALF_EVEN)
         ));
         baseColumns.add(new BaseProductoColumn(-9, "Precio por kilo (ARS)",
-                p -> p.getPrecioUnit() == null ? null :
+                p -> p.getPesoUnit() == null ? null :
                         p.getPrecioUnit()
                                 .divide(p.getPesoUnit(), 2, RoundingMode.HALF_EVEN)
                                 .multiply(ExchangeRates.getDolar())
